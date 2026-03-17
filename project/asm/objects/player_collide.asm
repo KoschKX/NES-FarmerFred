@@ -76,6 +76,7 @@ DoProbes:
 ProbesDone:
 	RTS
 
+
 DoProbesDropMode:
 	; Down+B: allow drop-through if tile is one-way (bit 1 clear)
 	LDA $0323
@@ -90,22 +91,22 @@ DoProbesDropMode:
 	TAX
 	LDA collision_table, x
 	AND #$02               ; bit 1 = "full solid" flag
-	BEQ DropThroughSkip    ; not full-solid → allow drop-through
-	JMP DoProbes           ; full-solid tile → normal collision
-
-DropThroughSkip
+	BNE DoProbes           ; full-solid tile → normal collision
+	; Only play SFX if player is on a $01 tile (one-way platform)
+	LDA collision_table, x
+	AND #$01
+	BEQ @no_sfx
+	LDA joy1_pressed
+	AND #$02
+	BEQ @no_sfx
+	LDA #$06
+	LDX #FAMISTUDIO_SFX_CH1
+	JSR famistudio_sfx_play
+@no_sfx:
 	LDA #$00
 	STA bottomCenterCollision
 	STA bottomCenterTile
 	STA bottomCenterCHR
-	; Play SFX only on the frame the B button was first pressed (one-shot)
-	LDA joy1_pressed
-	AND #$02
-	BEQ @dts_no_sfx
-	LDA #$06
-	LDX #FAMISTUDIO_SFX_CH1
-	JSR famistudio_sfx_play
-@dts_no_sfx:
 	RTS
 
 ; CheckSideAndTopCollisions
@@ -116,6 +117,10 @@ CheckSideAndTopCollisions:
 	PHA
 	LDA tile_col
 	PHA
+	; remember whether the bottom probe already set bottomCenterCollision;
+	; used at the end to decide which tile_row to snap to (bottom vs side probe row)
+	LDA bottomCenterCollision
+	STA tmp_high
 
 	LDA #$00
 	STA leftCollision
@@ -155,6 +160,20 @@ CheckSideAndTopCollisions:
 	BEQ @NoLeftHit
 	LDA #$01
 	STA leftCollision
+	; only correct position when falling diagonally into the tile
+	LDA playerVelocityY
+	BEQ @NoLeftHit
+	BMI @NoLeftHit
+	; snap X: push player right so left sprite edge clears this tile column
+	LDA tile_col
+	ASL A
+	ASL A
+	ASL A          ; tile_col * 8
+	CLC
+	ADC #$08       ; (tile_col+1)*8 — left edge of first clear column
+	STA player_world_x_low
+	LDA #$01
+	STA bottomCenterCollision
 @NoLeftHit:
 
 	; right probe: same Y, rightmost sprite + 7
@@ -173,13 +192,80 @@ CheckSideAndTopCollisions:
 	BEQ @NoRightHit
 	LDA #$01
 	STA rightCollision
+	; only correct position when falling diagonally into the tile
+	LDA playerVelocityY
+	BEQ @NoRightHit
+	BMI @NoRightHit
+	; snap X: push player left so right sprite edge (world_x+23) clears this column
+	LDA tile_col
+	ASL A
+	ASL A
+	ASL A          ; tile_col * 8
+	SEC
+	SBC #$18       ; tile_col*8 - 24 → right edge lands at tile_col*8-1
+	STA player_world_x_low
+	LDA #$01
+	STA bottomCenterCollision
 @NoRightHit:
 
-	; top: always passable from below (topCollision stays 0)
+	; top probe: test for full-solid tile directly above the player's head
 @NoTopHit:
-	; restore tile_row/tile_col for ApplyGravity
+	LDA player_world_y_high
+	BNE @uh_top_calc         ; high != 0: safe to subtract
+	LDA player_world_y_low
+	BEQ @uh_top_done         ; exactly at world top: skip
+@uh_top_calc:
+	LDA player_world_y_low
+	SEC
+	SBC #$01
+	STA tmp_qy
+	LDA player_world_y_high
+	SBC #$00
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	STA tile_row
+	LDA tmp_qy
+	LSR A
+	LSR A
+	LSR A
+	ORA tile_row
+	STA tile_row
+	CMP #59              ; clamp if out of level range
+	BCS @uh_top_done
+	LDA $0307            ; leftmost sprite X
+	CLC
+	ADC #$0C             ; +12 = horizontal midpoint of 24px sprite
+	LSR A
+	LSR A
+	LSR A
+	STA tile_col
+	JSR CFS_GetTileByColRow
+	LDA TileID
+	TAX
+	LDA collision_table, X
+	AND #$02             ; full-solid tiles only (bit 1)
+	BEQ @uh_top_done
+	LDA #$01
+	STA topCollision
+@uh_top_done:
+	; restore tile_col always
 	PLA
 	STA tile_col
+	; if the side probe forced bottomCenterCollision (bottom probe had not set it),
+	; keep tile_row as the side-probe row so the snap lands on the correct tile.
+	; otherwise restore the bottom-probe tile_row for normal snapping.
+	LDA tmp_high              ; was bottomCenterCollision set before side probes?
+	BNE @restore_tile_row     ; yes → use bottom probe's tile_row
+	LDA bottomCenterCollision
+	BEQ @restore_tile_row     ; neither set → use bottom probe's tile_row
+	; side probe forced the snap: tile_row is already the side-probe row —
+	; discard the stacked bottom-probe tile_row and return with side row
+	PLA
+	RTS
+@restore_tile_row:
 	PLA
 	STA tile_row
 	RTS

@@ -317,6 +317,36 @@ init_same_shift:
   LDA #$03
   STA OAM_DMA
 
+  ; one-time full palette upload (BG 0-2 fixed + BG 3 season + sprites)
+  ; NMI only re-uploads 4-byte BG palette 3 each frame, saving ~430 cycles/frame
+  LDA #$3F
+  STA $2006
+  LDA #$00
+  STA $2006
+  LDX #$00
+@sg_pal_bg02:
+  LDA palettes, X
+  STA $2007
+  INX
+  CPX #$0C
+  BNE @sg_pal_bg02
+  LDA season_pal3_c0
+  STA $2007
+  LDA season_pal3_c1
+  STA $2007
+  LDA season_pal3_c2
+  STA $2007
+  LDA season_pal3_c3
+  STA $2007
+  LDX #$10
+@sg_pal_spr:
+  LDA palettes, X
+  STA $2007
+  INX
+  CPX #$20
+  BNE @sg_pal_spr
+
+  LDA $2002              ; reset address latch before scroll writes
   LDA #$00
   STA PPU_SCROLL          ; X
   LDA scroll_y_ppu

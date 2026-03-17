@@ -10,6 +10,9 @@ WaitForVBlank:
     JSR PlayerCheckCollisions
     JSR ApplyGravity
     JSR DeadTick
+    JSR UpdateHat
+    JSR Scroll
+    JSR UpdateHUD
     JMP MAIN
 @not_dead:
 
@@ -26,6 +29,7 @@ WaitForVBlank:
 
       JSR UpdateCamera
       JSR UpdateCameraRender
+      JSR Scroll
 
       JSR UpdateSpriteWorldPos
       JSR PlayerAnimation
@@ -75,5 +79,7 @@ WaitForVBlank:
       LDA #$00              ; wait for the real NMI to fire
       STA nmi_ready
 @no_plant_restore:
-      
+
+      JSR UpdateHUD
+
     JMP MAIN

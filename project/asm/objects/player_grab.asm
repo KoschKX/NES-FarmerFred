@@ -23,6 +23,9 @@ ClearPlantRemovedBits:
 
 ; PlayerTryGrabPlant
 PlayerTryGrabPlant:
+  ; Block re-entry while grab animation is still running
+  LDA grabTimer
+  BNE @grab_rts
   LDA joy1_pressed
   AND #$01              ; A button
   BNE @grab_b_pressed
@@ -103,6 +106,13 @@ PlayerTryGrabPlant:
   ; Start grab animation — freeze player for 20 frames
   LDA #20
   STA grabTimer
+  ; one-shot pickup SFX: only fire when not already carrying
+  LDA isCarrying
+  BNE @grab_skip_sfx
+  LDA #$08
+  LDX #FAMISTUDIO_SFX_CH1
+  JSR famistudio_sfx_play
+@grab_skip_sfx:
   LDA #$01
   STA isCarrying           ; pumpkin now carried — stays visible after grab anim
   LDA #$06
