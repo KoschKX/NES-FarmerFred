@@ -72,7 +72,7 @@ WaitForVBlank:
       STA PPU_CTRL
       LDA #%00011110
       STA PPU_MASK
-      LDA #$01
+      LDA #$00              ; wait for the real NMI to fire
       STA nmi_ready
 @no_plant_restore:
       

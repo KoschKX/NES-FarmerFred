@@ -217,15 +217,12 @@ HandlePlayerJump:
   LDA joy1_pressed
   AND #$02
   BEQ @SkipJumpEdge
-  ; Down+B = drop
+  ; Down+B = drop through one-way platform
   LDA joy1_curr
   AND #$22
   CMP #$22
   BNE @NotDropJump
-  LDA #$06              ; sfx: throw
-  LDX #FAMISTUDIO_SFX_CH1
-  JSR famistudio_sfx_play
-  JMP @SkipJumpEdge
+  JMP @SkipJumpEdge    ; SFX plays in DropThroughSkip if the drop is actually allowed
 @NotDropJump:
   LDA playerVelocityY
   BNE @SkipJumpEdge     ; no double-jump

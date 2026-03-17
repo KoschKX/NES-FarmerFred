@@ -51,7 +51,7 @@ Reset:
   LDA #$01
   STA camera_clamp_bottom
   LDA #$00
-  STA $0044             ; platform_col_shift = $0044
+  STA $0044             ; playerVelocityY (zeroed by address before named labels run)
   STA plant_pending_flag
   STA plant_erase_count
 

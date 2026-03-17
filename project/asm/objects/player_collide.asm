@@ -35,8 +35,10 @@ GetBottomCenterTile:
 	JMP DoProbesDropMode
 
 DoProbes:
-	; center-bottom sprite tile probe
+	; center-bottom sprite tile probe (+4 to sample centre of 8px sprite)
 	LDA $0323
+	CLC
+	ADC #$04
 	LSR A
 	LSR A
 	LSR A
@@ -77,6 +79,8 @@ ProbesDone:
 DoProbesDropMode:
 	; Down+B: allow drop-through if tile is one-way (bit 1 clear)
 	LDA $0323
+	CLC
+	ADC #$04
 	LSR A
 	LSR A
 	LSR A
@@ -94,6 +98,14 @@ DropThroughSkip
 	STA bottomCenterCollision
 	STA bottomCenterTile
 	STA bottomCenterCHR
+	; Play SFX only on the frame the B button was first pressed (one-shot)
+	LDA joy1_pressed
+	AND #$02
+	BEQ @dts_no_sfx
+	LDA #$06
+	LDX #FAMISTUDIO_SFX_CH1
+	JSR famistudio_sfx_play
+@dts_no_sfx:
 	RTS
 
 ; CheckSideAndTopCollisions

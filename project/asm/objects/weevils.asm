@@ -157,6 +157,11 @@ InitWeevils:
   RTS
 
 WeevilRandPlat:
+  LDA lfsr_state
+  BNE @wrp_nonzero
+  LDA #$AC              ; re-seed if zero (should never happen)
+  STA lfsr_state
+@wrp_nonzero:
   LSR lfsr_state
   BCC @wrp_no_tap
   LDA lfsr_state

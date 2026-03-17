@@ -158,8 +158,8 @@ season_pal3_c3  .dsb 1
 ; Basket sparkle animation - 2 BG tiles above the basket cycle $6D/$6E/$6F
 ; for 60 frames (1 second) after a successful veggie score.
 basket_anim_timer  .dsb 1  ; 60->0 countdown; 0 = idle
-basket_anim_ppu_hi .dsb 1  ; PPU address high byte of animated tile pair
-basket_anim_ppu_lo .dsb 1  ; PPU address low byte (left tile; right = lo+1)
+basket_anim_ppu_hi .dsb 1  ; PPU address high byte of animated tile
+basket_anim_ppu_lo .dsb 1  ; PPU address low byte of the sparkle tile
 sfx_walk_timer     .dsb 1  ; frames until next walk SFX retrigger (0 = fire now)
 sfx_fly_timer0     .dsb 1  ; frames until next fly SFX retrigger for weevil0
 sfx_fly_timer1     .dsb 1  ; frames until next fly SFX retrigger for weevil1

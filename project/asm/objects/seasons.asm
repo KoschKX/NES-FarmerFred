@@ -98,6 +98,6 @@ UpdateBasketAnim:
   LDA basket_anim_ppu_lo
   STA $2006
   LDA tmp_high
-  STA $2007                 ; single sparkle tile
+  STA $2007                 ; sparkle tile
 @uba_done:
   RTS
