@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farmer Fred</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="web/css/style.css" />
+    <script src="web/js/nostalgist/nostalgist.umd.js"></script>
+  </head>
+  <body>
+    <img id="launch-button" src="web/img/start.gif" alt="Start" style="cursor:pointer;" />
+    <script>
+      async function launchGame() {
+        const response = await fetch('Farmer Fred.nes')
+        const blob = await response.blob()
+        await Nostalgist.launch({
+          core: 'fceumm',
+          rom: { fileName: 'Farmer Fred.nes', fileContent: blob },
+        })
+      }
+
+      const button = document.querySelector('#launch-button')
+      button.addEventListener('click', launchGame)
+    </script>
+  </body>
+</html>

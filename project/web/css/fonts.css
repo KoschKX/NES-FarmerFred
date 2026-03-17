@@ -1,0 +1,8 @@
+@font-face {
+    font-family: 'Keyboard'; 
+    src: url('../assets/fonts/keyboard.woff2') format('woff2'),
+         url('../assets/fonts/keyboard.woff') format('woff'),
+         url('../assets/fonts/keyboard.ttf') format('truetype'); 
+    font-weight: normal;
+    font-style: normal;
+}

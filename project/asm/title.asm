@@ -73,6 +73,10 @@ TitleScreen:
   INX
   BNE @ts_nmt3
 
+  ; Silence APU before init to prevent garbage sound on some emulators
+  LDA #$00
+  STA $4015             ; disable all channels (incl. DMC)
+  STA $4011             ; clear DMC counter
   ; Init FamiStudio now: NMI is still OFF, PPU writes are done
   ; Calling famistudio_init here avoids any PPU timing interference during
   ; palette upload. NMI is still disabled (PPU_CTRL not yet written).
@@ -80,6 +84,14 @@ TitleScreen:
   LDY #>music_data_untitled
   LDA #1                ; 1 = NTSC
   JSR famistudio_init
+  ; Initialize SFX engine even though we play no SFX on the title screen.
+  ; famistudio_sfx_init clears the SFX stream state (sfx_ptr_hi, sfx_repeat,
+  ; output buffer). Without this, power-on RAM ($FF on FCEUX/fceumm) makes
+  ; famistudio_sfx_update think active SFX are playing from garbage pointers,
+  ; producing ~4 seconds of buzzing until the fake "repeat" counters expire.
+  LDX #<sounds
+  LDY #>sounds
+  JSR famistudio_sfx_init
   LDA #0                ; song index 0 = maggie (title)
   JSR famistudio_music_play
 
