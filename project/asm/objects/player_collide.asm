@@ -23,7 +23,9 @@ GetBottomCenterTile:
 	ORA tile_row
 	STA tile_row
 
-	; if Down+B held, allow drop through one-way platforms
+	; if Down+B held (and not dead), allow drop through one-way platforms
+	LDA playerDead
+	BNE DoProbes             ; dead → always normal collision
 	LDA joy1_curr
 	AND #$22
 	CMP #$22
@@ -93,11 +95,12 @@ DoProbesDropMode:
 	AND #$02               ; bit 1 = "full solid" flag
 	BNE DoProbes           ; full-solid tile → normal collision
 	; Only play SFX if player is on a $01 tile (one-way platform)
+	; Fire on the first frame either Down or B is newly pressed while both are held
 	LDA collision_table, x
 	AND #$01
 	BEQ @no_sfx
 	LDA joy1_pressed
-	AND #$02
+	AND #$22               ; Down or B newly pressed this frame
 	BEQ @no_sfx
 	LDA #$06
 	LDX #FAMISTUDIO_SFX_CH1
@@ -164,6 +167,10 @@ CheckSideAndTopCollisions:
 	LDA playerVelocityY
 	BEQ @NoLeftHit
 	BMI @NoLeftHit
+	; skip snap if tile_col is too close to right edge (col*8+8 would overflow)
+	LDA tile_col
+	CMP #$1D               ; >= 29: result >= 240 px, skip
+	BCS @NoLeftHit
 	; snap X: push player right so left sprite edge clears this tile column
 	LDA tile_col
 	ASL A
@@ -196,6 +203,10 @@ CheckSideAndTopCollisions:
 	LDA playerVelocityY
 	BEQ @NoRightHit
 	BMI @NoRightHit
+	; skip snap if tile_col < 3 (tile_col*8-24 would underflow and teleport right)
+	LDA tile_col
+	CMP #$03               ; < 3: snap would underflow, skip
+	BCC @NoRightHit
 	; snap X: push player left so right sprite edge (world_x+23) clears this column
 	LDA tile_col
 	ASL A

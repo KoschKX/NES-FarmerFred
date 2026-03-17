@@ -7,12 +7,14 @@ WaitForVBlank:
     ; Check for player death (bypasses most game logic; gravity still applies)
     LDA playerDead
     BEQ @not_dead
+    ; Dead path: kept lean to stay within one NMI period (no lag frames).
+    ; Scroll and HUD are skipped; gravity, hat + pumpkin physics still run.
+    JSR ReadControllers
     JSR PlayerCheckCollisions
     JSR ApplyGravity
     JSR DeadTick
     JSR UpdateHat
-    JSR Scroll
-    JSR UpdateHUD
+    JSR UpdatePumpkinThrow
     JMP MAIN
 @not_dead:
 
@@ -43,6 +45,8 @@ WaitForVBlank:
       DEC playerInvTimer
 @skip_inv_dec:
 
+
+
       ; page transition: repopulate plants
       LDA plant_needs_restore
       BEQ @no_plant_restore
@@ -50,10 +54,6 @@ WaitForVBlank:
       STA plant_needs_restore
       STA PPU_CTRL               ; NMI off
       STA PPU_MASK               ; rendering off
-@plant_wait_vb:
-      BIT $2002
-      BPL @plant_wait_vb
-      ; vblank
       JSR ClearPlantRemovedBits
       JSR ReRandomizePlatforms
       JSR WritePlantsForAllPairs
@@ -61,9 +61,6 @@ WaitForVBlank:
       LDA #$00
       STA hat_active
       JSR PlaceHatOnBottomPlatform
-@plant_wait_vb2:
-      BIT $2002
-      BPL @plant_wait_vb2
       LDA $2002                  ; reset latch
       LDA #$00
       STA PPU_SCROLL
@@ -76,7 +73,7 @@ WaitForVBlank:
       STA PPU_CTRL
       LDA #%00011110
       STA PPU_MASK
-      LDA #$00              ; wait for the real NMI to fire
+      LDA #$00
       STA nmi_ready
 @no_plant_restore:
 
