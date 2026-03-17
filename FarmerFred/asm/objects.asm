@@ -1,0 +1,6 @@
+    .include "asm/objects/collisions.asm"
+    .include "asm/objects/player.asm"
+    .include "asm/objects/sprites.asm"
+    .include "asm/objects/camera.asm"
+    .include "asm/objects/plants.asm"
+    .include "asm/objects/hud.asm"

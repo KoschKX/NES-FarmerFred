@@ -1,0 +1,12 @@
+/- SDK -
+/- WORKSPACE -
+.DS_Store
+/FarmerFred/- ARCHIVE -
+FarmerFred/asm.zip
+/FarmerFred/tools/- ARCHIVE -
+/- AI -
+/FarmerFred/map/- ARCHIVE -
+FarmerFred/map/- ARCHIVE -.zip
+/FarmerFred/tmp
+FarmerFred/console_output.txt
+FarmerFred/build_output.txt
