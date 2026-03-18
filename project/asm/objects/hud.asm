@@ -39,9 +39,7 @@ UpdateHUD:
         LDA pageVeggies
         CMP basketGoal
         BCS @hud_gate_open
-        JSR AllPlantsGone
-        BEQ @hud_gate_open
-        ; blocked
+        ; goal not met — gate blocked
         LDA #$FF
         STA $0390              ; hide arrow
         LDA gate_open_shadow

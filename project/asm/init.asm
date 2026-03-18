@@ -51,7 +51,6 @@ Reset:
   LDA #$01
   STA camera_clamp_bottom
   LDA #$00
-  STA $0044             ; playerVelocityY (zeroed by address before named labels run)
   STA plant_pending_flag
   STA plant_erase_count
 
@@ -86,9 +85,9 @@ Reset:
   STA playerDead
   STA playerDeadTimer
   STA top_row_gate_flag
-  STA gate_open_shadow   ; blocked
+  STA gate_open_shadow   ; blocked — matches $D3 tiles written during init forced blank
   LDA #$00
-  STA arrow_sfx_enable   ; arrow beep on by default
+  STA arrow_sfx_enable   ; arrow SFX disabled
   LDA #5
   STA basketGoal         ; 0 = disabled
   ; season init (spring)
@@ -109,6 +108,13 @@ Reset:
   STA season_pal3_c3
   LDA #$00
   STA basket_anim_timer
+  LDA #$01
+  STA palette_dirty        ; force initial palette upload on first game NMI
+  LDA #$FF
+  STA lastPlayerFacing     ; invalid sentinel — forces UpdateSpriteAttrs to run on frame 1
+  LDA #$01
+  STA plants_dirty         ; force scan on first AllPlantsGone call
+  STA plants_all_gone      ; assume plants remain until first scan
   LDA #25
   STA seasonGoal
   ; zero collision state
@@ -192,7 +198,6 @@ StartGame:
   LDX #<sounds
   LDY #>sounds
   JSR famistudio_sfx_init
-  JSR LoadBackground
   JSR ProcessBackground
   JSR WriteAttributesDual
 

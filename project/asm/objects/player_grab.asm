@@ -19,6 +19,11 @@ ClearPlantRemovedBits:
   STA plant_removed_bits, X
   DEX
   BPL @cpb_loop
+  ; invalidate AllPlantsGone cache (plants just reset to live)
+  LDA #$01
+  STA plants_dirty
+  LDA #$01                ; assume plants remain until first scan
+  STA plants_all_gone
   RTS
 
 ; PlayerTryGrabPlant
@@ -27,7 +32,7 @@ PlayerTryGrabPlant:
   LDA grabTimer
   BNE @grab_rts
   LDA joy1_pressed
-  AND #$01              ; A button
+  AND #$80              ; A button
   BNE @grab_b_pressed
   RTS                   ; A not pressed — early out
 @grab_b_pressed:
@@ -224,6 +229,9 @@ PlayerTryGrabPlant:
   LDA grab_bit_masks, Y ; bit mask for this column
   ORA plant_removed_bits, X
   STA plant_removed_bits, X
+  ; invalidate AllPlantsGone cache
+  LDA #$01
+  STA plants_dirty
   RTS
 
 ; PlayerThrowPumpkin
@@ -423,6 +431,12 @@ UpdatePumpkinThrow:
 
 ; AllPlantsGone -- returns Z=1 if all plants grabbed (plant_removed_bits bytes 0-19 all $FF).
 AllPlantsGone:
+  ; fast path: return cached result when clean
+  LDA plants_dirty
+  BEQ @apg_cached
+  ; dirty — full scan
+  LDA #$00
+  STA plants_dirty    ; mark clean before scan
   LDX #19
 @apg_loop:
   LDA plant_removed_bits, X
@@ -431,7 +445,12 @@ AllPlantsGone:
   DEX
   BPL @apg_loop
   LDA #$00             ; all $FF — Z=1: no plants left
+  STA plants_all_gone  ; cache result
   RTS
 @apg_no:
   LDA #$01             ; Z=0: plants remain
+  STA plants_all_gone  ; cache result
+  RTS
+@apg_cached:
+  LDA plants_all_gone  ; cached result: Z=1 if $00 (all gone), Z=0 if $01 (plants remain)
   RTS

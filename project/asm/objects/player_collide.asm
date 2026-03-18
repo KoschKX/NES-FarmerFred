@@ -27,8 +27,8 @@ GetBottomCenterTile:
 	LDA playerDead
 	BNE DoProbes             ; dead → always normal collision
 	LDA joy1_curr
-	AND #$22
-	CMP #$22
+	AND #$44
+	CMP #$44
 	BNE DoProbes         ; buttons not held → normal collision
 	LDA tile_row
 	CMP #58
@@ -100,7 +100,7 @@ DoProbesDropMode:
 	AND #$01
 	BEQ @no_sfx
 	LDA joy1_pressed
-	AND #$22               ; Down or B newly pressed this frame
+	AND #$44               ; Down or B newly pressed this frame
 	BEQ @no_sfx
 	LDA #$06
 	LDX #FAMISTUDIO_SFX_CH1

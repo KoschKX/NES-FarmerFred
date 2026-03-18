@@ -50,31 +50,7 @@ WaitForVBlank:
       ; page transition: repopulate plants
       LDA plant_needs_restore
       BEQ @no_plant_restore
-      LDA #$00
-      STA plant_needs_restore
-      STA PPU_CTRL               ; NMI off
-      STA PPU_MASK               ; rendering off
-      JSR ClearPlantRemovedBits
-      JSR ReRandomizePlatforms
-      JSR WritePlantsForAllPairs
-      JSR InitWeevils
-      LDA #$00
-      STA hat_active
-      JSR PlaceHatOnBottomPlatform
-      LDA $2002                  ; reset latch
-      LDA #$00
-      STA PPU_SCROLL
-      LDA scroll_y_ppu
-      STA PPU_SCROLL
-      LDA nametable
-      AND #$01
-      ASL A
-      ORA #%10000000
-      STA PPU_CTRL
-      LDA #%00011110
-      STA PPU_MASK
-      LDA #$00
-      STA nmi_ready
+      JSR RestorePlantLayout    ; vblank-gated VRAM restore; clears plant_needs_restore
 @no_plant_restore:
 
       JSR UpdateHUD

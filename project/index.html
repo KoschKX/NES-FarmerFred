@@ -7,21 +7,58 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="stylesheet" href="web/css/style.css" />
     <script src="web/js/nostalgist/nostalgist.umd.js"></script>
+    <link rel="stylesheet" href="web/css/controls.css" />
   </head>
   <body>
     <img id="launch-button" src="web/img/start.gif" alt="Start" style="cursor:pointer;" />
+
+    <div id="mobile-controls">
+      <div id="dpad">
+        <button class="dpad-btn" id="dpad-up"    data-btn="up">&#9650;</button>
+        <button class="dpad-btn" id="dpad-left"  data-btn="left">&#9664;</button>
+        <button class="dpad-btn" id="dpad-right" data-btn="right">&#9654;</button>
+        <button class="dpad-btn" id="dpad-down"  data-btn="down">&#9660;</button>
+      </div>
+      <div id="action-buttons">
+        <button class="action-btn" id="btn-b" data-btn="b">B</button>
+        <button class="action-btn" id="btn-a" data-btn="a">A</button>
+      </div>
+      <div id="menu-buttons">
+        <button class="menu-btn" id="btn-select" data-btn="select">SELECT</button>
+        <button class="menu-btn" id="btn-start"  data-btn="start">START</button>
+      </div>
+    </div>
+
     <script>
+      // Grant screen-wake-lock permission to any iframe Nostalgist creates
+      const iframeObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === 1 && node.tagName === 'IFRAME') {
+              const allow = node.getAttribute('allow') || ''
+              if (!allow.includes('screen-wake-lock')) {
+                node.setAttribute('allow', allow ? allow + '; screen-wake-lock' : 'screen-wake-lock')
+              }
+            }
+          }
+        }
+      })
+      iframeObserver.observe(document.documentElement, { childList: true, subtree: true })
+
       async function launchGame() {
         const response = await fetch('Farmer Fred.nes')
         const blob = await response.blob()
-        await Nostalgist.launch({
+        const instance = await Nostalgist.launch({
           core: 'fceumm',
           rom: { fileName: 'Farmer Fred.nes', fileContent: blob },
         })
+        document.getElementById('mobile-controls').classList.add('active')
+        bindMobileControls(instance)
       }
 
       const button = document.querySelector('#launch-button')
       button.addEventListener('click', launchGame)
     </script>
+    <script src="web/js/controls.js" defer></script>
   </body>
 </html>

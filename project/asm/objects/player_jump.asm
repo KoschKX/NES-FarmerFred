@@ -119,9 +119,7 @@ ApplyGravity:
   BEQ @pj_do_transition     ; 0 = disabled
   LDA pageVeggies
   CMP basketGoal
-  BCS @pj_do_transition     ; pageVeggies >= goal - allow
-  JSR AllPlantsGone
-  BNE @wy_clamp_top         ; Z=0: plants remain - block
+  BCC @wy_clamp_top         ; pageVeggies < goal - block
 @pj_do_transition:
   LDA #$00
   STA pageVeggies
@@ -215,12 +213,12 @@ ApplyGravity:
   RTS
 HandlePlayerJump:
   LDA joy1_pressed
-  AND #$02
+  AND #$40
   BEQ @SkipJumpEdge
   ; Down+B = drop through one-way platform
   LDA joy1_curr
-  AND #$22
-  CMP #$22
+  AND #$44
+  CMP #$44
   BNE @NotDropJump
   JMP @SkipJumpEdge    ; SFX plays in DropThroughSkip if the drop is actually allowed
 @NotDropJump:

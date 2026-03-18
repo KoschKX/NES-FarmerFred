@@ -1,0 +1,98 @@
+#mobile-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  display: none;
+}
+@media (pointer: coarse), (max-width: 768px) {
+  #mobile-controls.active { display: block; }
+}
+
+#dpad {
+  position: absolute;
+  bottom: 20px;
+  left: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 3px;
+  pointer-events: all;
+  touch-action: none;
+}
+.dpad-btn {
+  background: rgba(255,255,255,0.18);
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 8px;
+  color: white;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+}
+.dpad-btn.pressed { background: rgba(255,255,255,0.45); }
+#dpad-up    { grid-column: 2; grid-row: 1; }
+#dpad-left  { grid-column: 1; grid-row: 2; }
+#dpad-right { grid-column: 3; grid-row: 2; }
+#dpad-down  { grid-column: 2; grid-row: 3; }
+
+#action-buttons {
+  position: absolute;
+  bottom: 20px;
+  right: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 58px);
+  grid-template-rows: repeat(2, 58px);
+  gap: 6px;
+  pointer-events: all;
+  touch-action: none;
+}
+.action-btn {
+  background: rgba(255,255,255,0.18);
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+}
+.action-btn.pressed { background: rgba(255,255,255,0.45); }
+#btn-b { grid-column: 1; grid-row: 2; }
+#btn-a { grid-column: 2; grid-row: 1; }
+
+#menu-buttons {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  pointer-events: all;
+  touch-action: none;
+}
+.menu-btn {
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.35);
+  border-radius: 14px;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 7px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.menu-btn.pressed { background: rgba(255,255,255,0.38); }

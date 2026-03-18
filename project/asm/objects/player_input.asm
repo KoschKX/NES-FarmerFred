@@ -16,15 +16,15 @@ HandlePlayerInput:
 	LDA #$00
 	STA playerMoving
 
-	; store B-held as $02 or $00
+	; store B-held as $40 or $00
 	LDA joy1_curr
-	AND #$02
+	AND #$40
 	STA playerBheld
 @B_AfterHeld:
 
 	; If A is held and grounded, freeze movement (pickup pose)
 	LDA joy1_curr
-	AND #$01
+	AND #$80
 	BEQ @noPickupFreeze
 	LDA playerGrounded
 	BEQ @noPickupFreeze
@@ -33,7 +33,7 @@ HandlePlayerInput:
 
 	; Left/Right handling and sprite shifts
 	LDA joy1_curr
-	AND #$40
+	AND #$02
 	BNE @TryLeft
 	JMP @CheckRight
 @TryLeft:
@@ -60,7 +60,7 @@ HandlePlayerInput:
 	JMP @AfterLR
 @CheckRight:
 	LDA joy1_curr
-	AND #$80
+	AND #$01
 	BEQ @AfterLR
 	; right: block if wall on right
 	LDA rightCollision

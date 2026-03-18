@@ -11,6 +11,83 @@ HAT_BOTTOM_PLAT_Y_LOW  = $C8
 HAT_BOTTOM_PLAT_Y_HIGH = $01
 HAT_CENTER_X           = $80
 
+; RestorePlantLayout
+;   Disables NMI (preserving nametable), waits for vblank, turns rendering
+;   off, rewrites all plant VRAM rows, reinitialises weevils, places hat,
+;   writes the closed-gate row if basketGoal != 0, then waits for a second
+;   vblank to re-enable with the correct scroll.  Clears plant_needs_restore
+;   and nmi_ready on return.  Safe to call from anywhere in the game loop.
+RestorePlantLayout:
+  ; Disable NMI but keep nametable select bits — avoids mid-display NT flip
+  LDA nametable
+  AND #$01
+  ASL A                      ; bit7=0 (NMI off), bits0-1 = current nametable
+  STA PPU_CTRL
+  ; Wait for vblank at a clean frame boundary
+@rpl_vbl1:
+  BIT $2002
+  BPL @rpl_vbl1
+  ; OAM DMA first, then disable rendering safely inside vblank
+  LDA #$00
+  STA $2003
+  LDA #$03
+  STA OAM_DMA
+  LDA #$00
+  STA PPU_MASK
+  ; VRAM work
+  JSR ClearPlantRemovedBits
+  JSR ReRandomizePlatforms
+  JSR WritePlantsForAllPairs
+  JSR InitWeevils
+  LDA #$00
+  STA hat_active
+  JSR PlaceHatOnBottomPlatform
+  ; Close gate row in VRAM ($D3 tiles) and reset shadow so HUD is in sync
+  LDA basketGoal
+  BEQ @rpl_no_gate
+  LDA $2002              ; reset PPU latch
+  LDA #$20
+  STA $2006
+  LDA #$00
+  STA $2006
+  LDA #$D3
+  LDX #$20
+@rpl_gate:
+  STA $2007
+  DEX
+  BNE @rpl_gate
+  LDA #$00
+  STA gate_open_shadow
+@rpl_no_gate:
+  LDA #$00
+  STA top_row_gate_flag  ; clear regardless — stops NMI overwriting row 0 on first post-restore frame
+  ; Now safe to compute scroll_y_ppu and nametable — rendering is off
+  JSR UpdateCameraRender
+  ; Wait for second vblank then re-enable with correct scroll
+@rpl_vbl2:
+  BIT $2002
+  BPL @rpl_vbl2
+  LDA #$00
+  STA $2003
+  LDA #$03
+  STA OAM_DMA
+  LDA $2002              ; reset PPU latch
+  LDA #$00
+  STA PPU_SCROLL
+  LDA scroll_y_ppu
+  STA PPU_SCROLL
+  LDA nametable
+  AND #$01
+  ASL A
+  ORA #%10000000
+  STA PPU_CTRL
+  LDA #%00011110
+  STA PPU_MASK
+  LDA #$00
+  STA plant_needs_restore
+  STA nmi_ready
+  RTS
+
 ; PlaceHatOnBottomPlatform
 ;   Call after a page transition (plant_needs_restore handled).
 ;   If the player is bald (playerHitTimer != 0) and no hat is already
@@ -382,11 +459,6 @@ DeadTick:
   STA playerVelocityY    ; no vertical momentum
   LDA #$01
   STA playerGrounded     ; standing on ground
-  ; Restore plants for the new life
-  LDA #$01
-  STA plant_needs_restore
-  LDA #$00
-  STA plant_restore_idx
   ; Place Fred at bottom platform centre
   LDA #$C8
   STA player_world_y_low
@@ -396,6 +468,33 @@ DeadTick:
   STA player_world_x_low
   LDA #$00
   STA player_world_x_high
+  ; Sync camera to the new bottom position. UpdateCameraRender is intentionally
+  ; NOT called here — calling it would update 'nametable' to the bottom value
+  ; before RestorePlantLayout's PPU_CTRL write, which would flip the nametable
+  ; mid-active-display and cause a visible scroll jerk.  RestorePlantLayout
+  ; calls UpdateCameraRender itself once rendering is already off.
+  JSR UpdateCamera
+  ; Sync OAM to bottom BEFORE the restore so both vblank OAM DMAs are correct
+  JSR UpdateSpriteWorldPos
+  JSR LoadSprites
+  JSR UpdateSpriteAttrs
+  ; Full vblank-gated VRAM restore — no deferred frame, no tile mismatch
+  JSR RestorePlantLayout
+  ; Sync lastRowIndex so Scroll doesn't see a spurious large delta next frame
+  LDA camera_y_high
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  ASL A
+  STA tmp_low
+  LDA camera_y
+  LSR A
+  LSR A
+  LSR A
+  ORA tmp_low
+  STA rowIndex
+  STA lastRowIndex
 @dt_done:
   RTS
 

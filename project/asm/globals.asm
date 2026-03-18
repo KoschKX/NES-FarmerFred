@@ -164,4 +164,10 @@ sfx_walk_timer     .dsb 1  ; frames until next walk SFX retrigger (0 = fire now)
 sfx_fly_timer0     .dsb 1  ; frames until next fly SFX retrigger for weevil0
 sfx_fly_timer1     .dsb 1  ; frames until next fly SFX retrigger for weevil1
 nmi_title_mode     .dsb 1  ; 1 = title-screen NMI (minimal path), 0 = game NMI
+; Performance flags
+palette_dirty      .dsb 1  ; 1 = BG palette 3 needs uploading next NMI
+lastPlayerFacing   .dsb 1  ; cached facing for UpdateSpriteAttrs early-out ($FF = invalid/first frame)
+; AllPlantsGone cache
+plants_all_gone    .dsb 1  ; cached result: $00 = all gone (Z=1), $01 = plants remain (Z=0)
+plants_dirty       .dsb 1  ; $01 = cache invalid, must rescan next call to AllPlantsGone
 .ende

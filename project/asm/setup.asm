@@ -25,7 +25,7 @@ FAMISTUDIO_USE_VIBRATO        = 1
 FAMISTUDIO_USE_ARPEGGIO       = 1
 FAMISTUDIO_CFG_SMOOTH_VIBRATO = 1
 FAMISTUDIO_USE_RELEASE_NOTES  = 1
-FAMISTUDIO_ASM6_ZP_ENUM       = $84    ; ZP temps: $82=nmi_title_mode, $83 spare, $84+ FamiStudio
+FAMISTUDIO_ASM6_ZP_ENUM       = $86    ; ZP temps: $83=nmi_title_mode, $84=palette_dirty, $85=lastPlayerFacing, $86+ FamiStudio
 FAMISTUDIO_ASM6_BSS_ENUM      = $0500  ; RAM above plant_removed_bits ($0400)
 FAMISTUDIO_ASM6_CODE_BASE     = $8000  ; engine lives at the start of bank 0
 LIB:

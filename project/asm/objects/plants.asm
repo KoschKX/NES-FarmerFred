@@ -246,6 +246,8 @@ WritePlantRowCore:
   LDA plant_bit_masks, X
   ORA plant_removed_bits, Y
   STA plant_removed_bits, Y
+  LDA #$01           ; invalidate AllPlantsGone cache
+  STA plants_dirty
   LDX tmp_ptr        ; restore column
   LDY tmp_ptr+1      ; restore rotation
   LDA #$00

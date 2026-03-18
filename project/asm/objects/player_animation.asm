@@ -2,6 +2,10 @@
 ; Handles player walking animation and frame logic
 
 PlayerAnimation:
+    LDA grabTimer
+    BEQ @pa_run
+    RTS                   ; freeze animation while grab is active
+@pa_run:
     INC animTimer
     LDA animTimer
     CMP #$03

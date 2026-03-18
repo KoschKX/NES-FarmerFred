@@ -1,12 +1,13 @@
 ; Generic controller reader: fills joy1_* zero-page mirrors
 ; Sets: joy1_prev, joy1_curr, joy1_pressed, joy1_released
+; Bit layout: A=$80 B=$40 Sel=$20 Start=$10 Up=$08 Down=$04 Left=$02 Right=$01
 
 ReadControllers:
   ; save previous
   LDA joy1_curr
   STA joy1_prev
 
-  ; clear current mirror
+  ; clear current mirror and carry
   LDA #$00
   STA joy1_curr
 
@@ -15,75 +16,34 @@ ReadControllers:
   STA $4016
   LDA #$00
   STA $4016
-  ; small timing padding for emulator compatibility (non-controller read)
-  LDA $2002
-  LDA $2002
 
-  ; Read 8 bits from $4016 into joy1_curr by OR-ing masks
-  ; bit0 - A
+  ; Read 8 bits via LSR→carry→ROL: branchless, constant-time (~88 cycles)
+  ; Controller sends buttons in order: A, B, Select, Start, Up, Down, Left, Right
+  ; Each bit 0 from $4016 is shifted into carry via LSR, then rotated into joy1_curr
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP0
-  LDA joy1_curr
-  ORA #$01
-  STA joy1_curr
-RC_SKIP0:
-  ; bit1 - B
+  LSR A
+  ROL joy1_curr           ; A      → bit 7
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP1
-  LDA joy1_curr
-  ORA #$02
-  STA joy1_curr
-RC_SKIP1:
-  ; bit2 - Select
+  LSR A
+  ROL joy1_curr           ; B      → bit 6
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP2
-  LDA joy1_curr
-  ORA #$04
-  STA joy1_curr
-RC_SKIP2:
-  ; bit3 - Start
+  LSR A
+  ROL joy1_curr           ; Select → bit 5
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP3
-  LDA joy1_curr
-  ORA #$08
-  STA joy1_curr
-RC_SKIP3:
-  ; bit4 - Up
+  LSR A
+  ROL joy1_curr           ; Start  → bit 4
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP4
-  LDA joy1_curr
-  ORA #$10
-  STA joy1_curr
-RC_SKIP4:
-  ; bit5 - Down
+  LSR A
+  ROL joy1_curr           ; Up     → bit 3
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP5
-  LDA joy1_curr
-  ORA #$20
-  STA joy1_curr
-RC_SKIP5:
-  ; bit6 - Left
+  LSR A
+  ROL joy1_curr           ; Down   → bit 2
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP6
-  LDA joy1_curr
-  ORA #$40
-  STA joy1_curr
-RC_SKIP6:
-  ; bit7 - Right
+  LSR A
+  ROL joy1_curr           ; Left   → bit 1
   LDA $4016
-  AND #%00000001
-  BEQ RC_SKIP7
-  LDA joy1_curr
-  ORA #$80
-  STA joy1_curr
-RC_SKIP7:
+  LSR A
+  ROL joy1_curr           ; Right  → bit 0
 
   ; compute pressed = curr & ~prev
   LDA joy1_prev

@@ -221,7 +221,7 @@ LoadSprites:
 @ls_not_hit:
   ; if A button is held AND player is grounded, show pickup frame
   LDA joy1_curr
-  AND #$01
+  AND #$80
   BEQ @noPickup
   LDA playerGrounded
   BEQ @noPickup
@@ -338,7 +338,7 @@ LoadSprites:
 ; Called automatically when playerHitTimer > 0
 LoadBaldSprites:
   LDA joy1_curr
-  AND #$01
+  AND #$80
   BEQ @bald_noPickup
   LDA playerGrounded
   BEQ @bald_noPickup
