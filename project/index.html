@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self' data:; style-src 'self';" />
     <title>Farmer Fred</title>
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="stylesheet" href="web/css/style.css" />
@@ -10,14 +11,14 @@
     <link rel="stylesheet" href="web/css/controls.css" />
   </head>
   <body>
-    <img id="launch-button" src="web/img/start.gif" alt="Start" style="cursor:pointer;" />
+    <img id="launch-button" src="web/img/start.gif" alt="Start" />
 
     <div id="mobile-controls">
       <div id="dpad">
-        <button class="dpad-btn" id="dpad-up"    data-btn="up">&#9650;</button>
-        <button class="dpad-btn" id="dpad-left"  data-btn="left">&#9664;</button>
-        <button class="dpad-btn" id="dpad-right" data-btn="right">&#9654;</button>
-        <button class="dpad-btn" id="dpad-down"  data-btn="down">&#9660;</button>
+        <button class="dpad-btn" id="dpad-up"    data-btn="up">&#9650;&#xFE0E;</button>
+        <button class="dpad-btn" id="dpad-left"  data-btn="left">&#9664;&#xFE0E;</button>
+        <button class="dpad-btn" id="dpad-right" data-btn="right">&#9654;&#xFE0E;</button>
+        <button class="dpad-btn" id="dpad-down"  data-btn="down">&#9660;&#xFE0E;</button>
       </div>
       <div id="action-buttons">
         <button class="action-btn" id="btn-b" data-btn="b">B</button>
@@ -49,7 +50,11 @@
         const response = await fetch('Farmer Fred.nes')
         const blob = await response.blob()
         const instance = await Nostalgist.launch({
-          core: 'fceumm',
+          core: {
+            name: 'fceumm',
+            js: 'web/js/nostalgist/retroarch/fceumm_libretro.js',
+            wasm: 'web/js/nostalgist/retroarch/fceumm_libretro.wasm',
+          },
           rom: { fileName: 'Farmer Fred.nes', fileContent: blob },
         })
         document.getElementById('mobile-controls').classList.add('active')
